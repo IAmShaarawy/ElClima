@@ -1,0 +1,20 @@
+<resources>
+    <string name="app_name">El Clima</string>
+    //activities Labels
+    <string name="activity_settings">Settings</string>
+
+
+    //menus Actions
+    <string name="action_refresh">Refresh</string>
+    <string name="action_settings">Settings</string>
+
+
+    //preferences
+    <string name="prefK_location_id" translatable="false">PrefRegionId</string>
+    <string name="prefD_location_id" translatable="false">349340</string>
+    <string name="prefT_location_id">Region ID</string>
+
+    <string name="prefK_unit" translatable="false">PrefUnit</string>
+    <string name="prefD_unit" translatable="false">metric</string>
+    <string name="prefT_unit">Unit</string>
+</resources>

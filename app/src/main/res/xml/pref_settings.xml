@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+    <EditTextPreference
+        android:defaultValue="@string/prefD_location_id"
+        android:inputType="numberDecimal"
+        android:key="@string/prefK_location_id"
+        android:summary="Location ID"
+        android:title="@string/prefT_location_id" />
+    <ListPreference
+        app:defaultValue="@string/prefD_unit"
+        app:entries="@array/prefE_forecast_units"
+        app:entryValues="@array/prefEV_forecast_units"
+        app:key="@string/prefK_unit"
+        app:title="@string/prefT_unit" />
+</PreferenceScreen>

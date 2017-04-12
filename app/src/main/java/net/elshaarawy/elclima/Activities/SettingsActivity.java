@@ -16,7 +16,7 @@ import java.util.TimerTask;
 
 public class SettingsActivity extends AppCompatActivity {
 
-    private int counter = 0;
+//    private int counter = 0;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -26,29 +26,27 @@ public class SettingsActivity extends AppCompatActivity {
         if (actionBar != null)
             actionBar.setDisplayHomeAsUpEnabled(true);
 
-
     }
 
-    @Override
-    public void onBackPressed() {
-
-        Toast t = Toast.makeText(this, "One more Time", Toast.LENGTH_SHORT);
-        if (counter > 0) {
-            super.onBackPressed();
-        } else {
-            t.show();
-            counter++;
-        }
-        new Timer().schedule(new TimerTask() {
-            @Override
-            public void run() {
-                counter = 0;
-            }
-        }, 1500);
-
-
-    }
-
+//    @Override
+//    public void onBackPressed() {
+//
+//        Toast t = Toast.makeText(this, "One more Time", Toast.LENGTH_SHORT);
+//        if (counter > 0) {
+//            super.onBackPressed();
+//        } else {
+//            t.show();
+//            counter++;
+//        }
+//        new Timer().schedule(new TimerTask() {
+//            @Override
+//            public void run() {
+//                counter = 0;
+//            }
+//        }, 1500);
+//
+//
+//    }
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {

@@ -21,7 +21,7 @@ public class ElClimaDbHelper extends SQLiteOpenHelper {
     @Override
     public void onCreate(SQLiteDatabase db) {
         final String CREATE_ELCLIMA_TABLE = "CREATE TABLE " + TABLE_NAME_FORECAST + "( " +
-                _ID + " INTEGER PRIMARY KEY AUTOINCREMENT "+
+                _ID + " INTEGER PRIMARY KEY AUTOINCREMENT , "+
                 COLUMN_DATE + " INTEGER NOT NULL , "+
                 COLUMN_T_DAY + " REAL NOT NULL , "+
                 COLUMN_T_MIN + " REAL NOT NULL , "+

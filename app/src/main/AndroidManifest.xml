@@ -29,6 +29,10 @@
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value=".Activities.MainActivity"/>
         </activity>
+        <provider
+            android:authorities="."
+            android:name=".Data.ElClimaContentProvider"
+            android:exported="false"/>
     </application>
 
 </manifest>

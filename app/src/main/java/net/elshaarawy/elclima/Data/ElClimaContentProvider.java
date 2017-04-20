@@ -3,22 +3,29 @@ package net.elshaarawy.elclima.Data;
 import android.content.ContentProvider;
 import android.content.ContentValues;
 import android.content.Context;
+import android.content.UriMatcher;
 import android.database.Cursor;
 import android.net.Uri;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+
+import static net.elshaarawy.elclima.Data.ElClimaContract.*;
 
 /**
  * Created by elshaarawy on 20-Apr-17.
  */
 
 public class ElClimaContentProvider extends ContentProvider {
-    ElClimaDbHelper dbHelper;
+    private ElClimaDbHelper mDbHelper;
+    static UriMatcher sMatcher;
+
 
     @Override
     public boolean onCreate() {
 
-        dbHelper = new ElClimaDbHelper(getContext());
+        mDbHelper = new ElClimaDbHelper(getContext());
+        sMatcher = ElclimaMatcher();
+
         return true;
     }
 
@@ -48,5 +55,16 @@ public class ElClimaContentProvider extends ContentProvider {
     @Override
     public int update(@NonNull Uri uri, @Nullable ContentValues values, @Nullable String selection, @Nullable String[] selectionArgs) {
         return 0;
+    }
+
+    private static UriMatcher ElclimaMatcher() {
+        //initialize the constructor with default code
+        UriMatcher uriMatcher = new UriMatcher(UriMatcher.NO_MATCH);
+
+        //adding URIs and its codes to the matcher
+        uriMatcher.addURI(AUTHORITY, Paths.FORECAST, MatchingCodes.FORECAST_DATA);//for all data
+        uriMatcher.addURI(AUTHORITY, Paths.FORECAST.concat("/#"), MatchingCodes.FORECAST_DATA_ID);//for one row of data
+
+        return uriMatcher;
     }
 }

@@ -1,5 +1,6 @@
 package net.elshaarawy.elclima.Data;
 
+import android.net.Uri;
 import android.provider.BaseColumns;
 
 /**
@@ -7,6 +8,11 @@ import android.provider.BaseColumns;
  */
 
 public class ElClimaContract {
+    // the Unique Identifier of this app
+    public static final String AUTHORITY = "net.elshaarawy.elclima";
+
+    public static final Uri BASE_CONTENT_URI = new Uri.Builder().scheme("content").authority(AUTHORITY).build();
+
     public static class ElClimaColumns implements BaseColumns{
         public static final String TABLE_NAME_FORECAST = "elclimaData";
 
@@ -27,5 +33,10 @@ public class ElClimaContract {
         public static final String COLUMN_DEG = "a15";
         public static final String COLUMN_CLOUDS = "a16";
 
+        //Content Provider URIs
+        public static final Uri ELCLIMA_DATA_URI =
+                BASE_CONTENT_URI.buildUpon().appendPath(TABLE_NAME_FORECAST).build();
     }
+
+
 }

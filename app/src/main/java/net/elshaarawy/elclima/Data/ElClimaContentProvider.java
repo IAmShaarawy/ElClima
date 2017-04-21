@@ -1,10 +1,13 @@
 package net.elshaarawy.elclima.Data;
 
 import android.content.ContentProvider;
+import android.content.ContentUris;
 import android.content.ContentValues;
 import android.content.Context;
 import android.content.UriMatcher;
 import android.database.Cursor;
+import android.database.SQLException;
+import android.database.sqlite.SQLiteDatabase;
 import android.net.Uri;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
@@ -44,7 +47,30 @@ public class ElClimaContentProvider extends ContentProvider {
     @Nullable
     @Override
     public Uri insert(@NonNull Uri uri, @Nullable ContentValues values) {
-        return null;
+
+        //get writable database to insert
+        final SQLiteDatabase sqLiteDatabase = mDbHelper.getWritableDatabase();
+        // initialize new long id to assign the insert return
+        long id = -1;
+        //matching received Uri to get its code from the matcher otherwise throw SQLException
+        switch (sMatcher.match(uri)) {
+
+            case MatchingCodes.FORECAST_DATA:
+                id = sqLiteDatabase.insert(ElClimaColumns.TABLE_NAME_FORECAST, null, values);
+                break;
+            default: throw new UnsupportedOperationException("Unknown Uri: "+uri.toString());
+
+        }
+
+        //check if the operation is successful or throw exception
+        if (id > 0){
+            getContext().getContentResolver().notifyChange(uri,null);
+            sqLiteDatabase.close();//by default insert function close the statement that execute we can comment this line
+            return ContentUris.withAppendedId(uri,id);
+        }else {
+            throw new SQLException("insertion failure to " + uri.toString());
+        }
+
     }
 
     @Override

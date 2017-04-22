@@ -1,5 +1,7 @@
 package net.elshaarawy.elclima.Data;
 
+import android.content.ContentResolver;
+import android.graphics.Path;
 import android.net.Uri;
 import android.provider.BaseColumns;
 
@@ -43,7 +45,7 @@ public class ElClimaContract {
 
     //we list all final Uris here
     public static class ProviderUris{
-        public static final Uri FORECAST_DATA_URI =
+        public static final Uri CONTENT_URI_FORECAST =
                 BASE_CONTENT_URI.buildUpon().appendPath(Paths.FORECAST).build();
     }
 
@@ -52,6 +54,11 @@ public class ElClimaContract {
         public static final int FORECAST_DATA = 101;
         public static final int FORECAST_DATA_ID = 102;
 
+    }
+
+    public static class MimeTypes{
+        public static final String FORECAST_TYPE = ContentResolver.CURSOR_DIR_BASE_TYPE +"/"+ AUTHORITY + "/"+ Paths.FORECAST;
+        public static final String FORECAST_ITEM_TYPE = ContentResolver.CURSOR_ITEM_BASE_TYPE +"/"+ AUTHORITY + "/"+ Paths.FORECAST;
     }
 
 }

@@ -8,6 +8,7 @@ import android.content.UriMatcher;
 import android.database.Cursor;
 import android.database.SQLException;
 import android.database.sqlite.SQLiteDatabase;
+import android.database.sqlite.SQLiteException;
 import android.net.Uri;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
@@ -22,7 +23,6 @@ public class ElClimaContentProvider extends ContentProvider {
     private ElClimaDbHelper mDbHelper;
     static UriMatcher sMatcher;
 
-
     @Override
     public boolean onCreate() {
 
@@ -35,13 +35,59 @@ public class ElClimaContentProvider extends ContentProvider {
     @Nullable
     @Override
     public Cursor query(@NonNull Uri uri, @Nullable String[] projection, @Nullable String selection, @Nullable String[] selectionArgs, @Nullable String sortOrder) {
-        return null;
+        //get instance of the readable database
+        final SQLiteDatabase sqLiteDatabase = mDbHelper.getReadableDatabase();
+        //define the return cursor
+        Cursor cursor = null;
+        //matching received Uri to get its code from the matcher otherwise throw SQLException
+        switch (sMatcher.match(uri)) {
+            case MatchingCodes.FORECAST_DATA:
+                cursor = sqLiteDatabase.query(ElClimaColumns.TABLE_NAME_FORECAST,
+                        projection,
+                        selection,
+                        selectionArgs,
+                        null, null,
+                        sortOrder);
+                break;
+            case MatchingCodes.FORECAST_DATA_ID:
+                //get the id from the Uri using uri class function
+                // uri is: content://<authority>/elclimaData/id
+                String id = uri.getLastPathSegment(); //we can use uri.getPathSegments().get(1) where 1 is the 2nd segment
+                String mSelection = "_id=?";
+                String[] mSelectionArgs = new String[]{id};
+
+                cursor = sqLiteDatabase.query(ElClimaColumns.TABLE_NAME_FORECAST,
+                        projection,
+                        mSelection,
+                        mSelectionArgs,
+                        null, null,
+                        sortOrder);
+                break;
+            default:
+                throw new UnsupportedOperationException("Unknown Uri: " + uri);
+
+        }
+        if (cursor != null) {
+            //close the database cause  we're very polite people =D
+            sqLiteDatabase.close();
+            //set the uri that cursor will be notifies through it
+            cursor.setNotificationUri(getContext().getContentResolver(), uri);
+            return cursor;
+        } else throw new SQLiteException("Unsupported Operation");
     }
 
     @Nullable
     @Override
     public String getType(@NonNull Uri uri) {
-        return null;
+        switch (sMatcher.match(uri)) {
+            case MatchingCodes.FORECAST_DATA:
+                return MimeTypes.FORECAST_TYPE;
+            case MatchingCodes.FORECAST_DATA_ID:
+                return MimeTypes.FORECAST_ITEM_TYPE;
+            default:
+                throw new UnsupportedOperationException("Unknown Uri: " + uri.toString());
+        }
+
     }
 
     @Nullable
@@ -51,36 +97,96 @@ public class ElClimaContentProvider extends ContentProvider {
         //get writable database to insert
         final SQLiteDatabase sqLiteDatabase = mDbHelper.getWritableDatabase();
         // initialize new long id to assign the insert return
-        long id = -1;
+        long id;
         //matching received Uri to get its code from the matcher otherwise throw SQLException
         switch (sMatcher.match(uri)) {
 
             case MatchingCodes.FORECAST_DATA:
                 id = sqLiteDatabase.insert(ElClimaColumns.TABLE_NAME_FORECAST, null, values);
                 break;
-            default: throw new UnsupportedOperationException("Unknown Uri: "+uri.toString());
+            default:
+                throw new UnsupportedOperationException("Unknown Uri: " + uri.toString());
 
         }
 
         //check if the operation is successful or throw exception
-        if (id > 0){
-            getContext().getContentResolver().notifyChange(uri,null);
-            sqLiteDatabase.close();//by default insert function close the statement that execute we can comment this line
-            return ContentUris.withAppendedId(uri,id);
-        }else {
-            throw new SQLException("insertion failure to " + uri.toString());
+        if (id > 0) {
+            getContext().getContentResolver().notifyChange(uri, null);
+            sqLiteDatabase.close();//by default insert function close the statement no need to be polite here xD
+            return ContentUris.withAppendedId(uri, id);
+        } else {
+            throw new SQLiteException("insertion failure to " + uri.toString());
         }
 
     }
 
     @Override
     public int delete(@NonNull Uri uri, @Nullable String selection, @Nullable String[] selectionArgs) {
-        return 0;
+
+        if (selection == null) {
+            throw new IllegalArgumentException("You shouldn't pass null, you will delete all the table entries if you want that pass empty string \"\"");
+        }
+        final SQLiteDatabase sqLiteDatabase = mDbHelper.getWritableDatabase();
+        int effectedRows;
+        switch (sMatcher.match(uri)) {
+            case MatchingCodes.FORECAST_DATA:
+                effectedRows = sqLiteDatabase.delete(ElClimaColumns.TABLE_NAME_FORECAST,
+                        selection,
+                        selectionArgs);
+                break;
+            case MatchingCodes.FORECAST_DATA_ID:
+                String id = uri.getLastPathSegment();
+                String mSelection = ElClimaColumns._ID + "=?";
+                String[] mSelectionArgs = new String[]{id};
+                effectedRows = sqLiteDatabase.delete(ElClimaColumns.TABLE_NAME_FORECAST,
+                        mSelection,
+                        mSelectionArgs);
+                break;
+            default:
+                throw new UnsupportedOperationException("Unknown Uri: " + uri.toString());
+        }
+        if (effectedRows > 0) {
+            getContext().getContentResolver().notifyChange(uri, null);
+        }
+        sqLiteDatabase.close();//because we are polite :)
+        return effectedRows;
     }
 
     @Override
     public int update(@NonNull Uri uri, @Nullable ContentValues values, @Nullable String selection, @Nullable String[] selectionArgs) {
-        return 0;
+        final SQLiteDatabase sqLiteDatabase = mDbHelper.getWritableDatabase();
+        int effectedRows;
+        switch (sMatcher.match(uri)) {
+            case MatchingCodes.FORECAST_DATA:
+                effectedRows = sqLiteDatabase.update(ElClimaColumns.TABLE_NAME_FORECAST,
+                        values,
+                        selection,
+                        selectionArgs);
+                break;
+            case MatchingCodes.FORECAST_DATA_ID:
+                String id = uri.getLastPathSegment();
+                String mSelection = ElClimaColumns._ID + "=?";
+                String[] mSelectionArgs = new String[]{id};
+                effectedRows = sqLiteDatabase.update(ElClimaColumns.TABLE_NAME_FORECAST,
+                        values,
+                        mSelection,
+                        mSelectionArgs);
+                break;
+            default:
+                throw new UnsupportedOperationException("Unknown Uri: " + uri.toString());
+        }
+
+        if (effectedRows > 0) {
+            getContext().getContentResolver().notifyChange(uri, null);
+        }
+        sqLiteDatabase.close();
+        return effectedRows;
+    }
+
+    @Override
+    public void shutdown() {
+        super.shutdown();
+        mDbHelper.close();
     }
 
     private static UriMatcher ElclimaMatcher() {
@@ -94,3 +200,4 @@ public class ElClimaContentProvider extends ContentProvider {
         return uriMatcher;
     }
 }
+

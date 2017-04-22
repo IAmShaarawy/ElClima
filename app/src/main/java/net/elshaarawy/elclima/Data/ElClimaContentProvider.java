@@ -1,6 +1,7 @@
 package net.elshaarawy.elclima.Data;
 
 import android.content.ContentProvider;
+import android.content.ContentResolver;
 import android.content.ContentUris;
 import android.content.ContentValues;
 import android.content.Context;
@@ -184,6 +185,22 @@ public class ElClimaContentProvider extends ContentProvider {
     }
 
     @Override
+    public int bulkInsert(@NonNull Uri uri, @NonNull ContentValues[] values) {
+        SQLiteDatabase sqLiteDatabase = mDbHelper.getWritableDatabase();
+
+        switch (sMatcher.match(uri)) {
+            case MatchingCodes.FORECAST_DATA:
+                return multiInsertion(sqLiteDatabase,
+                        ElClimaColumns.TABLE_NAME_FORECAST,
+                        values,
+                        getContext().getContentResolver(),
+                        uri);
+            default:
+                return super.bulkInsert(uri, values);
+        }
+    }
+
+    @Override
     public void shutdown() {
         super.shutdown();
         mDbHelper.close();
@@ -199,5 +216,25 @@ public class ElClimaContentProvider extends ContentProvider {
 
         return uriMatcher;
     }
+
+    private static int multiInsertion(SQLiteDatabase db, String tableName, ContentValues[] values, ContentResolver resolver, Uri _uri) {
+        int insertedRows = 0;
+        db.beginTransaction();
+        try {
+            for (ContentValues value : values) {
+                Long _id = db.insert(tableName, null, value);
+                if (_id != -1)
+                    insertedRows++;
+            }
+            db.setTransactionSuccessful();
+        } finally {
+            db.endTransaction();
+        }
+        if (insertedRows > 0) {
+            resolver.notifyChange(_uri, null);
+        }
+        return insertedRows;
+    }
+
 }
 

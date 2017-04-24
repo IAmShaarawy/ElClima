@@ -26,7 +26,6 @@ import android.widget.Toast;
 import net.elshaarawy.elclima.Activities.SettingsActivity;
 import net.elshaarawy.elclima.ForecastAdapter;
 import net.elshaarawy.elclima.R;
-import net.elshaarawy.elclima.WeatherLoaderTask;
 
 import java.util.ArrayList;
 import java.util.Arrays;

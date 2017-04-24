@@ -127,8 +127,8 @@ public class ForecastFragment extends android.support.v4.app.Fragment implements
     //Loader Callbacks
     @Override
     public Loader<String[]> onCreateLoader(int id,  Bundle args) {
-        WeatherLoaderTask weatherLoaderTask = new WeatherLoaderTask(getContext(), args);
-        return weatherLoaderTask;
+
+        return null;
     }
 
     @Override

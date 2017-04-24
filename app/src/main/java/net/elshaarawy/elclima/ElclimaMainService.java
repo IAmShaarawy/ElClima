@@ -165,6 +165,7 @@ public class ElclimaMainService extends IntentService {
                 .toString();
     }
 
+    //start service with a static function to avoid any conflict
     public static void startMe(@NonNull Context context, @NonNull String regionID, @NonNull String unit) {
         Intent intent = new Intent(context, ElclimaMainService.class);
         intent

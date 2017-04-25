@@ -11,6 +11,7 @@ import android.text.format.Time;
 
 import net.elshaarawy.elclima.Data.ElClimaEntity;
 
+import org.joda.time.DateTime;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -142,11 +143,12 @@ public class ElclimaMainService extends IntentService {
         JSONObject weatherObject;
         ElClimaEntity entity;
 
+        DateTime dateTime = new DateTime();
         for (int i = 0; i < numDays; i++) {
             dayObject  = weatherArray.getJSONObject(i);
             tempObject = dayObject.getJSONObject(OWM_TEMPERATURE);
             weatherObject = dayObject.getJSONArray(OWM_WEATHER).optJSONObject(0);
-            entity = new ElClimaEntity(dayObject.getLong(OWM_DT),
+            entity = new ElClimaEntity(dateTime.getMillis(),
                     tempObject.getDouble(OWM_DAY),
                     tempObject.getDouble(OWM_MIN),
                     tempObject.getDouble(OWM_MAX),
@@ -181,6 +183,7 @@ public class ElclimaMainService extends IntentService {
             values.put(COLUMN_DEG,entity.getDeg());
             values.put(COLUMN_CLOUDS,entity.getClouds());
             valuesArray[i]= values;
+            dateTime = dateTime.plusDays(1);
         }
         this.getContentResolver().delete(CONTENT_URI_FORECAST,"",null);
         this.getContentResolver().bulkInsert(CONTENT_URI_FORECAST,valuesArray);

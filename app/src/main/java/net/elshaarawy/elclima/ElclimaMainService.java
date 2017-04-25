@@ -1,12 +1,15 @@
 package net.elshaarawy.elclima;
 
 import android.app.IntentService;
+import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.text.format.Time;
+
+import net.elshaarawy.elclima.Data.ElClimaEntity;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -19,6 +22,8 @@ import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.text.SimpleDateFormat;
+import static net.elshaarawy.elclima.Data.ElClimaContract.ElClimaColumns.*;
+import static net.elshaarawy.elclima.Data.ElClimaContract.ProviderUris.CONTENT_URI_FORECAST;
 
 /**
  * Created by elshaarawy on 24-Apr-17.
@@ -50,11 +55,11 @@ public class ElclimaMainService extends IntentService {
                 .appendQueryParameter("cnt", "16")
                 .appendQueryParameter("id", regionId)
                 .build();
-        String[] data = loadData(weatherUri);
+        loadData(weatherUri);
     }
 
     //http connection
-    private String[] loadData(Uri weatherUri) {
+    private void loadData(Uri weatherUri) {
         HttpURLConnection urlConnection = null;
         BufferedReader bufferedReader = null;
         String forecastJsonStr = null;
@@ -66,7 +71,7 @@ public class ElclimaMainService extends IntentService {
 
             InputStream inputStream = urlConnection.getInputStream();
             if (inputStream == null)
-                return null;
+                return ;
             bufferedReader = new BufferedReader(new InputStreamReader(inputStream));
 
             StringBuffer buffer = new StringBuffer();
@@ -75,7 +80,7 @@ public class ElclimaMainService extends IntentService {
                 buffer.append(line + "\n");
             }
             if (buffer.length() == 0)
-                return null;
+                return ;
 
             forecastJsonStr = buffer.toString();
         } catch (java.io.IOException e) {
@@ -93,61 +98,92 @@ public class ElclimaMainService extends IntentService {
             }
         }
         try {
-            return getWeatherDataFromJson(forecastJsonStr, 7);
+            getWeatherDataFromJson(forecastJsonStr, 7);
         } catch (JSONException e) {
             e.printStackTrace();
         }
-        return null;
     }
 
     //Parse JSON String
-    private String[] getWeatherDataFromJson(String forecastJsonStr, int numDays) throws JSONException {
+    private void getWeatherDataFromJson(String forecastJsonStr, int numDays) throws JSONException {
 
         final String OWM_LIST = "list";
+        final String OWM_DT = "dt";
         final String OWM_TEMPERATURE = "temp";
+        final String OWM_DAY = "day";
         final String OWM_MIN = "min";
         final String OWM_MAX = "max";
+        final String OWM_NIGHT = "night";
+        final String OWM_EVE = "eve";
+        final String OWM_MORN = "morn";
+
+        final String OWM_PRESSURE = "pressure";
+        final String OWM_HUMIDITY = "humidity";
+
         final String OWM_WEATHER = "weather";
-        final String OWM_DESCRIPTION = "main";
+        final String OWM_W_ID = "id";
+        final String OWM_W_MAIN = "main";
+        final String OWM_W_DESCRIPTION = "description";
+        final String OWM_W_ICON = "icon";
+
+        final String OWM_SPEED = "speed";
+        final String OWM_DEG = "deg";
+        final String OWM_CLOUDS = "clouds";
         if (forecastJsonStr == null)
-            return null;
+            return ;
         JSONObject forecastJson = new JSONObject(forecastJsonStr);
         JSONArray weatherArray = forecastJson.getJSONArray(OWM_LIST);
 
-        Time dayTime = new Time();
-        dayTime.setToNow();
-        int julianStartDay = Time.getJulianDay(System.currentTimeMillis(), dayTime.gmtoff);
-        dayTime.setToNow();
 
-        String[] resultString = new String[numDays];
+        ContentValues[] valuesArray = new ContentValues[numDays];
+        ContentValues values ;
+        JSONObject dayObject;
+        JSONObject tempObject;
+        JSONObject weatherObject;
+        ElClimaEntity entity;
+
         for (int i = 0; i < numDays; i++) {
-            String day;
-            String description;
-            String highAndLow;
-
-            //get ith weather object
-            JSONObject dayForecast = weatherArray.getJSONObject(i);
-
-            // form the date
-            day = getReadableDateString(dayTime.setJulianDay(julianStartDay + i));
-
-            //get description
-            JSONObject weatherObject = dayForecast.getJSONArray(OWM_WEATHER).getJSONObject(0);
-            description = weatherObject.getString(OWM_DESCRIPTION);
-
-            //get Temp
-            JSONObject temperatureObject = dayForecast.getJSONObject(OWM_TEMPERATURE);
-            double high = temperatureObject.getDouble(OWM_MAX);
-            double low = temperatureObject.getDouble(OWM_MIN);
-            highAndLow = formatHighLows(high, low);
-
-            // build row of weather data
-            resultString[i] = new StringBuilder()
-                    .append(day).append(" - ")
-                    .append(description).append(" - ")
-                    .append(highAndLow).toString();
+            dayObject  = weatherArray.getJSONObject(i);
+            tempObject = dayObject.getJSONObject(OWM_TEMPERATURE);
+            weatherObject = dayObject.getJSONArray(OWM_WEATHER).optJSONObject(0);
+            entity = new ElClimaEntity(dayObject.getLong(OWM_DT),
+                    tempObject.getDouble(OWM_DAY),
+                    tempObject.getDouble(OWM_MIN),
+                    tempObject.getDouble(OWM_MAX),
+                    tempObject.getDouble(OWM_NIGHT),
+                    tempObject.getDouble(OWM_EVE),
+                    tempObject.getDouble(OWM_MORN),
+                    dayObject.getDouble(OWM_PRESSURE),
+                    dayObject.getDouble(OWM_SPEED),
+                    dayObject.getInt(OWM_HUMIDITY),
+                    weatherObject.getInt(OWM_W_ID),
+                    dayObject.getInt(OWM_DEG),
+                    dayObject.getInt(OWM_CLOUDS),
+                    weatherObject.getString(OWM_W_MAIN),
+                    weatherObject.getString(OWM_W_DESCRIPTION),
+                    weatherObject.getString(OWM_W_ICON)
+                    );
+            values =  new ContentValues();
+            values.put(COLUMN_DATE,entity.getDate());
+            values.put(COLUMN_T_DAY,entity.gettDay());
+            values.put(COLUMN_T_MIN,entity.gettMin());
+            values.put(COLUMN_T_MAX,entity.gettMax());
+            values.put(COLUMN_T_NIGHT,entity.gettNight());
+            values.put(COLUMN_T_EVE,entity.gettEvening());
+            values.put(COLUMN_T_MORN,entity.gettMorning());
+            values.put(COLUMN_PRESSURE,entity.getPressure());
+            values.put(COLUMN_HUMIDITY,entity.getHumidity());
+            values.put(COLUMN_W_ID,entity.getwID());
+            values.put(COLUMN_W_MAIN,entity.getwMain());
+            values.put(COLUMN_W_DESCRIPTION,entity.getwDescription());
+            values.put(COLUMN_W_ICON,entity.getwIcon());
+            values.put(COLUMN_SPEED,entity.getSpeed());
+            values.put(COLUMN_DEG,entity.getDeg());
+            values.put(COLUMN_CLOUDS,entity.getClouds());
+            valuesArray[i]= values;
         }
-        return resultString;
+        this.getContentResolver().delete(CONTENT_URI_FORECAST,"",null);
+        this.getContentResolver().bulkInsert(CONTENT_URI_FORECAST,valuesArray);
     }
 
     //format date

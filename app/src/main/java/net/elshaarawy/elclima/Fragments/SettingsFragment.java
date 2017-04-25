@@ -12,6 +12,8 @@ import android.widget.Toast;
 
 import net.elshaarawy.elclima.R;
 
+import static net.elshaarawy.elclima.ElclimaMainService.startMe;
+
 
 /**
  * Created by elshaarawy on 08-Apr-17.
@@ -63,6 +65,8 @@ public class SettingsFragment extends PreferenceFragmentCompat
                 eToast.show();
                 return false;
             }
+
+
         }
         return true;
     }
@@ -71,6 +75,14 @@ public class SettingsFragment extends PreferenceFragmentCompat
     public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
         Preference changedPreference = findPreference(key);
         setPreferenceSummary(changedPreference);
+        if (key.equals(getString(R.string.prefK_location_id)) ||
+                key.equals(getString(R.string.prefK_unit))) {
+
+            startMe(getContext(),
+                    sharedPreferences.getString(getString(R.string.prefK_location_id), getString(R.string.prefD_location_id)),
+                    sharedPreferences.getString(getString(R.string.prefK_unit), getString(R.string.prefD_unit))
+            );
+        }
     }
 
     private void setPreferenceSummary(Preference preference) {

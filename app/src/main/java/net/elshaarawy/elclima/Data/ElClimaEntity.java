@@ -1,5 +1,6 @@
 package net.elshaarawy.elclima.Data;
 
+import android.os.DeadObjectException;
 import android.os.Parcel;
 import android.os.Parcelable;
 
@@ -9,12 +10,11 @@ import android.os.Parcelable;
 
 public class ElClimaEntity implements Parcelable {
     private long date;
-    private float tDay, tMin, tMax, tNight, tEvening, tMorning, pressure, speed;
-    private byte humidity;
-    private int wID, deg, clouds;
+    private double tDay, tMin, tMax, tNight, tEvening, tMorning, pressure, speed;
+    private int humidity, wID, deg, clouds;
     private String wMain, wDescription, wIcon;
 
-    public ElClimaEntity(long date, float tDay, float tMin, float tMax, float tNight, float tEvening, float tMorning, float pressure, float speed, byte humidity, int wID, int deg, int clouds, String wMain, String wDescription, String wIcon) {
+    public ElClimaEntity(long date, double tDay, double tMin, double tMax, double tNight, double tEvening, double tMorning, double pressure, double speed, int humidity, int wID, int deg, int clouds, String wMain, String wDescription, String wIcon) {
         this.date = date;
         this.tDay = tDay;
         this.tMin = tMin;
@@ -72,15 +72,15 @@ public class ElClimaEntity implements Parcelable {
     @Override
     public void writeToParcel(Parcel dest, int flags) {
         dest.writeLong(date);
-        dest.writeFloat(tDay);
-        dest.writeFloat(tMin);
-        dest.writeFloat(tMax);
-        dest.writeFloat(tNight);
-        dest.writeFloat(tEvening);
-        dest.writeFloat(tMorning);
-        dest.writeFloat(pressure);
-        dest.writeFloat(speed);
-        dest.writeByte(humidity);
+        dest.writeDouble(tDay);
+        dest.writeDouble(tMin);
+        dest.writeDouble(tMax);
+        dest.writeDouble(tNight);
+        dest.writeDouble(tEvening);
+        dest.writeDouble(tMorning);
+        dest.writeDouble(pressure);
+        dest.writeDouble(speed);
+        dest.writeInt(humidity);
         dest.writeInt(wID);
         dest.writeInt(deg);
         dest.writeInt(clouds);
@@ -97,71 +97,71 @@ public class ElClimaEntity implements Parcelable {
         this.date = date;
     }
 
-    public float gettDay() {
+    public double gettDay() {
         return tDay;
     }
 
-    public void settDay(float tDay) {
+    public void settDay(double tDay) {
         this.tDay = tDay;
     }
 
-    public float gettMin() {
+    public double gettMin() {
         return tMin;
     }
 
-    public void settMin(float tMin) {
+    public void settMin(double tMin) {
         this.tMin = tMin;
     }
 
-    public float gettMax() {
+    public double gettMax() {
         return tMax;
     }
 
-    public void settMax(float tMax) {
+    public void settMax(double tMax) {
         this.tMax = tMax;
     }
 
-    public float gettNight() {
+    public double gettNight() {
         return tNight;
     }
 
-    public void settNight(float tNight) {
+    public void settNight(double tNight) {
         this.tNight = tNight;
     }
 
-    public float gettEvening() {
+    public double gettEvening() {
         return tEvening;
     }
 
-    public void settEvening(float tEvening) {
+    public void settEvening(double tEvening) {
         this.tEvening = tEvening;
     }
 
-    public float gettMorning() {
+    public double gettMorning() {
         return tMorning;
     }
 
-    public void settMorning(float tMorning) {
+    public void settMorning(double tMorning) {
         this.tMorning = tMorning;
     }
 
-    public float getPressure() {
+    public double getPressure() {
         return pressure;
     }
 
-    public void setPressure(float pressure) {
+    public void setPressure(double pressure) {
         this.pressure = pressure;
     }
 
-    public float getSpeed() {
+    public double getSpeed() {
         return speed;
     }
 
-    public void setSpeed(float speed) {
+    public void setSpeed(double speed) {
         this.speed = speed;
     }
 
-    public byte getHumidity() {
+    public int getHumidity() {
         return humidity;
     }
 
@@ -215,5 +215,9 @@ public class ElClimaEntity implements Parcelable {
 
     public void setwIcon(String wIcon) {
         this.wIcon = wIcon;
+    }
+
+    public static Creator<ElClimaEntity> getCREATOR() {
+        return CREATOR;
     }
 }

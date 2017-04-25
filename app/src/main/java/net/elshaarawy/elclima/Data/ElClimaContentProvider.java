@@ -69,8 +69,6 @@ public class ElClimaContentProvider extends ContentProvider {
 
         }
         if (cursor != null) {
-            //close the database cause  we're very polite people =D
-            sqLiteDatabase.close();
             //set the uri that cursor will be notifies through it
             cursor.setNotificationUri(getContext().getContentResolver(), uri);
             return cursor;
@@ -146,7 +144,7 @@ public class ElClimaContentProvider extends ContentProvider {
             default:
                 throw new UnsupportedOperationException("Unknown Uri: " + uri.toString());
         }
-        if (effectedRows > 0) {
+        if (effectedRows == 1) {
             getContext().getContentResolver().notifyChange(uri, null);
         }
         sqLiteDatabase.close();//because we are polite :)

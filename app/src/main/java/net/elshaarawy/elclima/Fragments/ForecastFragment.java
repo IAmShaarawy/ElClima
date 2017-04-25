@@ -4,10 +4,17 @@ package net.elshaarawy.elclima.Fragments;
 import android.content.Intent;
 import android.content.SharedPreferences;
 
+import android.database.Cursor;
+import android.icu.util.Calendar;
+import android.icu.util.GregorianCalendar;
+import android.icu.util.TimeZone;
+import android.os.Build;
 import android.os.Bundle;
 
+import android.provider.SyncStateContract;
 import android.support.annotation.Nullable;
 import android.support.v4.app.LoaderManager;
+import android.support.v4.content.CursorLoader;
 import android.support.v4.content.Loader;
 
 import android.support.v7.preference.PreferenceManager;
@@ -15,6 +22,8 @@ import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 
 
+import android.text.format.Time;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -24,17 +33,22 @@ import android.view.ViewGroup;
 import android.widget.Toast;
 
 import net.elshaarawy.elclima.Activities.SettingsActivity;
+import net.elshaarawy.elclima.Data.ElClimaContract;
 import net.elshaarawy.elclima.ForecastAdapter;
 import net.elshaarawy.elclima.R;
 
+import java.text.DateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.List;
 
+import static net.elshaarawy.elclima.Data.ElClimaContract.ElClimaColumns.*;
+import static net.elshaarawy.elclima.ElclimaMainService.startMe;
 
 public class ForecastFragment extends android.support.v4.app.Fragment implements
         ForecastAdapter.ListItemClickListener,
-        LoaderManager.LoaderCallbacks<String[]>{
+        LoaderManager.LoaderCallbacks<Cursor> {
 
     private List<String> weekForecast;
     private ForecastAdapter mForecastAdapter;
@@ -91,6 +105,16 @@ public class ForecastFragment extends android.support.v4.app.Fragment implements
     }
 
     @Override
+    public void onActivityCreated(@Nullable Bundle savedInstanceState) {
+        super.onActivityCreated(savedInstanceState);
+        if (loaderManager == null) {
+            loaderManager.initLoader(LOADER_ID, null, this).forceLoad();
+        } else {
+            loaderManager.restartLoader(LOADER_ID, null, this).forceLoad();
+        }
+    }
+
+    @Override
     public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
         super.onCreateOptionsMenu(menu, inflater);
         inflater.inflate(R.menu.forecasr_fragment, menu);
@@ -104,7 +128,7 @@ public class ForecastFragment extends android.support.v4.app.Fragment implements
 
                 String region = mSharedPreferences.getString(getString(R.string.prefK_location_id), getString(R.string.prefD_location_id));
                 //"349340"
-                triggerLoader(region);
+                launchService(region);
                 return true;
             case R.id.action_settings:
                 getActivity().startActivity(new Intent(getActivity(), SettingsActivity.class));
@@ -126,36 +150,38 @@ public class ForecastFragment extends android.support.v4.app.Fragment implements
 
     //Loader Callbacks
     @Override
-    public Loader<String[]> onCreateLoader(int id,  Bundle args) {
+    public Loader<Cursor> onCreateLoader(int id, Bundle args) {
 
-        return null;
+        return new CursorLoader(getContext(), ElClimaContract.ProviderUris.CONTENT_URI_FORECAST, null, null, null, null);
     }
 
     @Override
-    public void onLoadFinished(Loader<String[]> loader, String[] data) {
+    public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
+        int columnsCount = data.getColumnCount();
+        int rowsCount = data.getCount();
 
-        if (data != null) {
+        if (columnsCount > 0 && rowsCount > 0) {
 
-            weekForecast = new ArrayList<>(Arrays.asList(data));
-            mForecastAdapter.resetData(new ArrayList<>(Arrays.asList(data)));
+            String[] w = new String[rowsCount];
+            data.moveToFirst();
+            for (int i = 0; i < rowsCount; i++) {
+                w[i] = data.getString(data.getColumnIndex(COLUMN_W_MAIN))+
+                        "   "+data.getString(data.getColumnIndex(COLUMN_T_MAX));
+                data.moveToNext();
+            }
+            weekForecast = new ArrayList<>(Arrays.asList(w));
+            mForecastAdapter.resetData(new ArrayList<>(Arrays.asList(w)));
         }
     }
 
     @Override
-    public void onLoaderReset(Loader<String[]> loader) {
+    public void onLoaderReset(Loader<Cursor> loader) {
 
     }
 
-    private void triggerLoader(String regionId) {
-
-        Bundle bundle = new Bundle();
-        bundle.putString(REGION_ID_EXTRA, regionId);
-        bundle.putString(UNIT_EXTRA,mSharedPreferences.getString(getString(R.string.prefK_unit),getString(R.string.prefD_unit)));
-
-        if (loaderManager == null) {
-            loaderManager.initLoader(LOADER_ID, bundle, this).forceLoad();
-        } else {
-            loaderManager.restartLoader(LOADER_ID, bundle, this).forceLoad();
-        }
+    private void launchService(String regionId) {
+        startMe(getContext(),
+                regionId,
+                mSharedPreferences.getString(getString(R.string.prefK_unit), getString(R.string.prefD_unit)));
     }
 }

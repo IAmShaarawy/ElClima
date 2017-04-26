@@ -189,21 +189,6 @@ public class ElclimaMainService extends IntentService {
         this.getContentResolver().bulkInsert(CONTENT_URI_FORECAST,valuesArray);
     }
 
-    //format date
-    private String getReadableDateString(long time) {
-        SimpleDateFormat shortenedDateFormat = new SimpleDateFormat("EEE MMM dd");
-        return shortenedDateFormat.format(time);
-    }
-
-    //format High and low
-    private String formatHighLows(double high, double low) {
-        return new StringBuilder()
-                .append(Math.round(high))
-                .append("/")
-                .append(Math.round(low))
-                .toString();
-    }
-
     //start service with a static function to avoid any conflict
     public static void startMe(@NonNull Context context, @NonNull String regionID, @NonNull String unit) {
         Intent intent = new Intent(context, ElclimaMainService.class);

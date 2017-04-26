@@ -34,8 +34,12 @@ import android.widget.Toast;
 
 import net.elshaarawy.elclima.Activities.SettingsActivity;
 import net.elshaarawy.elclima.Data.ElClimaContract;
+import net.elshaarawy.elclima.Data.ElClimaEntity;
 import net.elshaarawy.elclima.ForecastAdapter;
 import net.elshaarawy.elclima.R;
+
+import org.joda.time.DateTime;
+import org.joda.time.DateTimeZone;
 
 import java.text.DateFormat;
 import java.util.ArrayList;
@@ -160,13 +164,35 @@ public class ForecastFragment extends android.support.v4.app.Fragment implements
         int columnsCount = data.getColumnCount();
         int rowsCount = data.getCount();
 
+        ElClimaEntity entity;
         if (columnsCount > 0 && rowsCount > 0) {
 
             String[] w = new String[rowsCount];
             data.moveToFirst();
             for (int i = 0; i < rowsCount; i++) {
-                w[i] = data.getString(data.getColumnIndex(COLUMN_W_MAIN))+
-                        "   "+data.getString(data.getColumnIndex(COLUMN_T_MAX));
+
+                entity = new ElClimaEntity(
+                        data.getLong(data.getColumnIndex(COLUMN_DATE)),
+                        data.getDouble(data.getColumnIndex(COLUMN_T_DAY)),
+                        data.getDouble(data.getColumnIndex(COLUMN_T_MIN)),
+                        data.getDouble(data.getColumnIndex(COLUMN_T_MAX)),
+                        data.getDouble(data.getColumnIndex(COLUMN_T_NIGHT)),
+                        data.getDouble(data.getColumnIndex(COLUMN_T_EVE)),
+                        data.getDouble(data.getColumnIndex(COLUMN_T_MORN)),
+                        data.getDouble(data.getColumnIndex(COLUMN_PRESSURE)),
+                        data.getDouble(data.getColumnIndex(COLUMN_SPEED)),
+                        data.getInt(data.getColumnIndex(COLUMN_HUMIDITY)),
+                        data.getInt(data.getColumnIndex(COLUMN_W_ID)),
+                        data.getInt(data.getColumnIndex(COLUMN_DEG)),
+                        data.getInt(data.getColumnIndex(COLUMN_CLOUDS)),
+                        data.getString(data.getColumnIndex(COLUMN_W_MAIN)),
+                        data.getString(data.getColumnIndex(COLUMN_W_DESCRIPTION)),
+                        data.getString(data.getColumnIndex(COLUMN_W_ICON))
+                );
+                DateTime dateTime = new DateTime(entity.getDate(), DateTimeZone.UTC);
+                w[i] = dateTime.toString("EEE MMM dd") + " - " +
+                        entity.getwMain() + " - " +
+                        formatHighLows(entity.gettMax(), entity.gettMin());
                 data.moveToNext();
             }
             weekForecast = new ArrayList<>(Arrays.asList(w));
@@ -183,5 +209,14 @@ public class ForecastFragment extends android.support.v4.app.Fragment implements
         startMe(getContext(),
                 regionId,
                 mSharedPreferences.getString(getString(R.string.prefK_unit), getString(R.string.prefD_unit)));
+    }
+
+    //format High and low
+    private String formatHighLows(double high, double low) {
+        return new StringBuilder()
+                .append(Math.round(high))
+                .append("/")
+                .append(Math.round(low))
+                .toString();
     }
 }

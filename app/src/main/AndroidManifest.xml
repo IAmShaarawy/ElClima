@@ -36,8 +36,12 @@
             android:name=".Data.ElClimaContentProvider"
             android:authorities="net.elshaarawy.elclima"
             android:exported="false" />
+
         <service
             android:name=".ElclimaMainService"
+            android:exported="false" />
+        <service
+            android:name=".ElccimaJobService"
             android:exported="false" />
     </application>
 

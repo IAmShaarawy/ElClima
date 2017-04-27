@@ -80,7 +80,8 @@ public class SettingsFragment extends PreferenceFragmentCompat
 
             startMe(getContext(),
                     sharedPreferences.getString(getString(R.string.prefK_location_id), getString(R.string.prefD_location_id)),
-                    sharedPreferences.getString(getString(R.string.prefK_unit), getString(R.string.prefD_unit))
+                    sharedPreferences.getString(getString(R.string.prefK_unit), getString(R.string.prefD_unit)),
+                    false
             );
         }
     }

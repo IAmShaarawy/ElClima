@@ -22,9 +22,11 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
-import java.text.SimpleDateFormat;
+
+
 import static net.elshaarawy.elclima.Data.ElClimaContract.ElClimaColumns.*;
 import static net.elshaarawy.elclima.Data.ElClimaContract.ProviderUris.CONTENT_URI_FORECAST;
+import static net.elshaarawy.elclima.NotificationBroadcaster.startNotificationBroadcaster;
 
 /**
  * Created by elshaarawy on 24-Apr-17.
@@ -34,6 +36,8 @@ public class ElclimaMainService extends IntentService {
 
     private static final String EXTRA_REGION_ID = "regionIdExtra";
     private final static String EXTRA_UNIT = "unitExtra";
+    private final static String EXTRA_BROADCAST = "broadcastExtra";
+    private boolean sendBroadcast = false;
 
     public ElclimaMainService() {
         super("ElclimaMainService");
@@ -46,6 +50,7 @@ public class ElclimaMainService extends IntentService {
         if (intent != null) {
             regionId = intent.getStringExtra(EXTRA_REGION_ID);
             unit = intent.getStringExtra(EXTRA_UNIT);
+            sendBroadcast = intent.getBooleanExtra(EXTRA_BROADCAST, false);
         }
 
         Uri weatherBaseUri = Uri.parse("http://api.openweathermap.org/data/2.5/forecast/daily");
@@ -58,6 +63,7 @@ public class ElclimaMainService extends IntentService {
                 .build();
         loadData(weatherUri);
     }
+
 
     //http connection
     private void loadData(Uri weatherUri) {
@@ -72,7 +78,7 @@ public class ElclimaMainService extends IntentService {
 
             InputStream inputStream = urlConnection.getInputStream();
             if (inputStream == null)
-                return ;
+                return;
             bufferedReader = new BufferedReader(new InputStreamReader(inputStream));
 
             StringBuffer buffer = new StringBuffer();
@@ -81,7 +87,7 @@ public class ElclimaMainService extends IntentService {
                 buffer.append(line + "\n");
             }
             if (buffer.length() == 0)
-                return ;
+                return;
 
             forecastJsonStr = buffer.toString();
         } catch (java.io.IOException e) {
@@ -131,21 +137,21 @@ public class ElclimaMainService extends IntentService {
         final String OWM_DEG = "deg";
         final String OWM_CLOUDS = "clouds";
         if (forecastJsonStr == null)
-            return ;
+            return;
         JSONObject forecastJson = new JSONObject(forecastJsonStr);
         JSONArray weatherArray = forecastJson.getJSONArray(OWM_LIST);
 
 
         ContentValues[] valuesArray = new ContentValues[numDays];
-        ContentValues values ;
+        ContentValues values;
         JSONObject dayObject;
         JSONObject tempObject;
         JSONObject weatherObject;
         ElClimaEntity entity;
-
+        ElClimaEntity notificationEntity = null;
         DateTime dateTime = new DateTime();
         for (int i = 0; i < numDays; i++) {
-            dayObject  = weatherArray.getJSONObject(i);
+            dayObject = weatherArray.getJSONObject(i);
             tempObject = dayObject.getJSONObject(OWM_TEMPERATURE);
             weatherObject = dayObject.getJSONArray(OWM_WEATHER).optJSONObject(0);
             entity = new ElClimaEntity(dateTime.getMillis(),
@@ -164,37 +170,44 @@ public class ElclimaMainService extends IntentService {
                     weatherObject.getString(OWM_W_MAIN),
                     weatherObject.getString(OWM_W_DESCRIPTION),
                     weatherObject.getString(OWM_W_ICON)
-                    );
-            values =  new ContentValues();
-            values.put(COLUMN_DATE,entity.getDate());
-            values.put(COLUMN_T_DAY,entity.gettDay());
-            values.put(COLUMN_T_MIN,entity.gettMin());
-            values.put(COLUMN_T_MAX,entity.gettMax());
-            values.put(COLUMN_T_NIGHT,entity.gettNight());
-            values.put(COLUMN_T_EVE,entity.gettEvening());
-            values.put(COLUMN_T_MORN,entity.gettMorning());
-            values.put(COLUMN_PRESSURE,entity.getPressure());
-            values.put(COLUMN_HUMIDITY,entity.getHumidity());
-            values.put(COLUMN_W_ID,entity.getwID());
-            values.put(COLUMN_W_MAIN,entity.getwMain());
-            values.put(COLUMN_W_DESCRIPTION,entity.getwDescription());
-            values.put(COLUMN_W_ICON,entity.getwIcon());
-            values.put(COLUMN_SPEED,entity.getSpeed());
-            values.put(COLUMN_DEG,entity.getDeg());
-            values.put(COLUMN_CLOUDS,entity.getClouds());
-            valuesArray[i]= values;
+            );
+            if (i == 0) {
+                notificationEntity = entity;
+            }
+            values = new ContentValues();
+            values.put(COLUMN_DATE, entity.getDate());
+            values.put(COLUMN_T_DAY, entity.gettDay());
+            values.put(COLUMN_T_MIN, entity.gettMin());
+            values.put(COLUMN_T_MAX, entity.gettMax());
+            values.put(COLUMN_T_NIGHT, entity.gettNight());
+            values.put(COLUMN_T_EVE, entity.gettEvening());
+            values.put(COLUMN_T_MORN, entity.gettMorning());
+            values.put(COLUMN_PRESSURE, entity.getPressure());
+            values.put(COLUMN_HUMIDITY, entity.getHumidity());
+            values.put(COLUMN_W_ID, entity.getwID());
+            values.put(COLUMN_W_MAIN, entity.getwMain());
+            values.put(COLUMN_W_DESCRIPTION, entity.getwDescription());
+            values.put(COLUMN_W_ICON, entity.getwIcon());
+            values.put(COLUMN_SPEED, entity.getSpeed());
+            values.put(COLUMN_DEG, entity.getDeg());
+            values.put(COLUMN_CLOUDS, entity.getClouds());
+            valuesArray[i] = values;
             dateTime = dateTime.plusDays(1);
         }
-        this.getContentResolver().delete(CONTENT_URI_FORECAST,"",null);
-        this.getContentResolver().bulkInsert(CONTENT_URI_FORECAST,valuesArray);
+        this.getContentResolver().delete(CONTENT_URI_FORECAST, "", null);
+        this.getContentResolver().bulkInsert(CONTENT_URI_FORECAST, valuesArray);
+        if (sendBroadcast && notificationEntity != null) {
+            startNotificationBroadcaster(this, notificationEntity);
+        }
     }
 
     //start service with a static function to avoid any conflict
-    public static void startMe(@NonNull Context context, @NonNull String regionID, @NonNull String unit) {
+    synchronized public static void startMe(@NonNull Context context, @NonNull String regionID, @NonNull String unit, boolean sendBroadcast) {
         Intent intent = new Intent(context, ElclimaMainService.class);
         intent
                 .putExtra(EXTRA_REGION_ID, regionID)
-                .putExtra(EXTRA_UNIT, unit);
+                .putExtra(EXTRA_UNIT, unit)
+                .putExtra(EXTRA_BROADCAST, sendBroadcast);
         context.startService(intent);
     }
 }

@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
     package="net.elshaarawy.elclima">
 
     <uses-permission android:name="android.permission.INTERNET" />
@@ -41,8 +42,14 @@
             android:name=".ElclimaMainService"
             android:exported="false" />
         <service
-            android:name=".ElccimaJobService"
-            android:exported="false" />
+            android:name=".ElClimaJobService"
+            android:exported="false" >
+            <intent-filter>
+                <action android:name="com.firebase.jobdispatcher.ACTION_EXECUTE"/>
+            </intent-filter>
+        </service>
+        <receiver android:name=".NotificationBroadcaster"
+            android:exported="false"/>
     </application>
 
 </manifest>

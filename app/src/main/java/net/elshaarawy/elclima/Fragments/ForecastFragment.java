@@ -208,7 +208,8 @@ public class ForecastFragment extends android.support.v4.app.Fragment implements
     private void launchService(String regionId) {
         startMe(getContext(),
                 regionId,
-                mSharedPreferences.getString(getString(R.string.prefK_unit), getString(R.string.prefD_unit)));
+                mSharedPreferences.getString(getString(R.string.prefK_unit), getString(R.string.prefD_unit)),
+                false);
     }
 
     //format High and low

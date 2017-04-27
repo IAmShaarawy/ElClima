@@ -1,4 +1,4 @@
-<resources>
+<resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
     <string name="app_name">El Clima</string>
     //activities Labels
     <string name="activity_settings">Settings</string>
@@ -17,4 +17,11 @@
     <string name="prefK_unit" translatable="false">PrefUnit</string>
     <string name="prefD_unit" translatable="false">metric</string>
     <string name="prefT_unit">Unit</string>
+
+    //formatted temp
+    <!--to not been translated we use xliff xml localization Interchange File Format -->
+    <!--\u for UNI Code 00B0 uniCode for ْ -->
+    <string name="formated_temp">
+        <xliff:g id="temp">%d</xliff:g>\u00B0
+    </string>
 </resources>

@@ -45,7 +45,7 @@ public class NotificationBroadcaster extends BroadcastReceiver {
 
         elClimaEntity = intent.getParcelableExtra(EXTRA_ENTITY);
         String description = elClimaEntity.getwDescription();
-        String highLow = formatHighLows(elClimaEntity.gettMax(), elClimaEntity.gettMin());
+        String highLow = formatHighLows(context,elClimaEntity.gettMax(), elClimaEntity.gettMin());
 
         String iconUrl = "http://openweathermap.org/img/w/" + elClimaEntity.getwIcon() + ".png";
 
@@ -59,7 +59,7 @@ public class NotificationBroadcaster extends BroadcastReceiver {
         Uri defaultNotificationRingTone = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION);
         //build Notification
         builder.setContentTitle(description)
-                .setContentText("Expected Temperature is " +highLow)
+                .setContentText("Expected Temperature is " + highLow)
                 .setSmallIcon(R.drawable.ic_brightness_7_white_24dp)
                 .setContentIntent(pendingIntent)
                 .setAutoCancel(true)
@@ -68,12 +68,12 @@ public class NotificationBroadcaster extends BroadcastReceiver {
         new AsyncTask<Object, Void, Bitmap>() {
             @Override
             protected Bitmap doInBackground(Object... params) {
-                Context lContext = (Context)params[0];
+                Context lContext = (Context) params[0];
                 Bitmap bitmap;
                 try {
-                    bitmap = Picasso.with(lContext).load((String)params[1]).get();
+                    bitmap = Picasso.with(lContext).load((String) params[1]).get();
                 } catch (IOException e) {
-                    bitmap = BitmapFactory.decodeResource(lContext.getResources(),R.drawable.ic_launcher);
+                    bitmap = BitmapFactory.decodeResource(lContext.getResources(), R.drawable.ic_launcher);
                 }
                 return bitmap;
             }
@@ -82,13 +82,13 @@ public class NotificationBroadcaster extends BroadcastReceiver {
             protected void onPostExecute(Bitmap bitmap) {
                 super.onPostExecute(bitmap);
                 builder.setLargeIcon(bitmap);
-                manager.notify(1001,builder.build());
+                manager.notify(1001, builder.build());
             }
-        }.execute(context,iconUrl);
+        }.execute(context, iconUrl);
 
     }
 
-    public IntentFilter getFilter(){
+    public IntentFilter getFilter() {
         IntentFilter filter = new IntentFilter();
         filter.addAction(ACTION_MAIN);
         return filter;
@@ -100,11 +100,11 @@ public class NotificationBroadcaster extends BroadcastReceiver {
         LocalBroadcastManager.getInstance(context).sendBroadcast(intent);
     }
 
-    private String formatHighLows(double high, double low) {
+    private String formatHighLows(Context context, double high, double low) {
         return new StringBuilder()
-                .append(Math.round(high))
+                .append(context.getString(R.string.formated_temp, Math.round(high)))
                 .append("/")
-                .append(Math.round(low))
+                .append(context.getString(R.string.formated_temp, Math.round(low)))
                 .toString();
     }
 

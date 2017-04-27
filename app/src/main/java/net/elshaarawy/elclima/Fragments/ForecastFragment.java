@@ -1,6 +1,7 @@
 package net.elshaarawy.elclima.Fragments;
 
 
+import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 
@@ -192,7 +193,7 @@ public class ForecastFragment extends android.support.v4.app.Fragment implements
                 DateTime dateTime = new DateTime(entity.getDate(), DateTimeZone.UTC);
                 w[i] = dateTime.toString("EEE MMM dd") + " - " +
                         entity.getwMain() + " - " +
-                        formatHighLows(entity.gettMax(), entity.gettMin());
+                        formatHighLows(getContext(), entity.gettMax(), entity.gettMin());
                 data.moveToNext();
             }
             weekForecast = new ArrayList<>(Arrays.asList(w));
@@ -213,11 +214,11 @@ public class ForecastFragment extends android.support.v4.app.Fragment implements
     }
 
     //format High and low
-    private String formatHighLows(double high, double low) {
+    private String formatHighLows(Context context, double high, double low) {
         return new StringBuilder()
-                .append(Math.round(high))
+                .append(context.getString(R.string.formated_temp, Math.round(high)))
                 .append("/")
-                .append(Math.round(low))
+                .append(context.getString(R.string.formated_temp, Math.round(low)))
                 .toString();
     }
 }
